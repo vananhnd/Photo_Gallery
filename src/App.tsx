@@ -1,34 +1,18 @@
-// import React from 'react';
-// import logo from './logo.svg';
-// import './App.css';
-// import PhotoList from './PhotoList';
-//
-// function App() {
-//   return (
-//     <div className="App">
-//         <PhotoList/>
-//     </div>
-//   );
-// }
-//
-// export default App;
-//
-//
-
-
-// src/App.tsx
 
 import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import PhotoList from "./PhotoList";
+import Login from './login';
 
 const App: React.FC = () => {
     return (
-        <div className="App">
-            <header className="App-header">
-                <h1 className="text-3xl font-semibold mb-4">Photo Gallery</h1>
-                <PhotoList />
-            </header>
-        </div>
+        <Router>
+            <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/photo-list" element={<PhotoList />} />
+                <Route path="*" element={<Navigate to="/login" />} />
+            </Routes>
+        </Router>
     );
 };
 
