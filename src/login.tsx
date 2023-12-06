@@ -24,31 +24,14 @@ const Login: React.FC = () => {
         } catch (error) {
             console.error('Email Sign-In Error:', error);
             setError('Invalid email or password. Please try again.');
+            window.confirm("Invalid email or password. Please try again.");
         }
     };
 
     return (
-        // <div>
-        //     <h2>Login</h2>
-        //     <button onClick={handleGoogleSignIn}>Sign In with Google</button>
-        //     <br />
-        //     <br />
-        //     <div>
-        //         <label>Email:</label>
-        //         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        //     </div>
-        //     <div>
-        //         <label>Password:</label>
-        //         <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        //     </div>
-        //     <button onClick={handleEmailSignIn}>Sign In with Email</button>
-        // </div>
         <div className="flex items-center justify-center h-screen">
             <div className="flex flex-col bg-white w-full max-w-sm p-6 rounded-md shadow-md items-center justify-center">
-                <h2 className="text-2xl font-semibold mb-4">Login</h2>
-                <div className="flex items-center mb-4">
-                    <div className="flex-1 border-t-2 border-gray-300"></div>
-                </div>
+                <h2 className="text-2xl text-[#95774F] font-semibold mb-4">Welcome to Photo Gallery</h2>
                 <form onSubmit={(e) => e.preventDefault()}>
                     <input
                         type="email"
@@ -67,11 +50,14 @@ const Login: React.FC = () => {
                         required
                     />
                         <button
-                            className="w-full bg-green-500 text-white p-2 rounded-md cursor-pointer"
+                            className="w-full bg-[#95774F] text-white p-2 rounded-md cursor-pointer"
                             onClick={handleEmailSignIn}
                         >
                             Log In
                         </button>
+                        <div className="my-2 text-xs text-gray-500 text-center">
+                        You can login with admin@gmail.com - password: 123456
+                        </div>
                 </form>
             </div>
         </div>

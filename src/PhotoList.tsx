@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect, useRef} from "react";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import axios from "axios";
 interface Photo {
     albumId: number;
@@ -12,29 +15,72 @@ const PhotoList: React.FC = () => {
     const [photos, setPhotos] = useState<Photo[]>([]);
     const [search, setSearch] = useState<string>("");
     const [page, setPage] = useState<number>(1);
-    const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
-    const [newPhotoTitle, setNewPhotoTitle] = useState<string>("");
-    const [updatedTitle, setUpdatedTitle] = useState<string>("");
-    const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
+
+    // create
     const [isCreatePopupOpen, setIsCreatePopupOpen] = useState(false);
+    const [newPhotoTitle, setNewPhotoTitle] = useState<string>("");
+    const [newPhotoUrl, setNewPhotoUrl] = useState<string>("");
+    const [newThumbnailUrl, setNewThumbnailUrl] = useState<string>("");
+
+    // update
+    const [isUpdatePopupOpen, setIsUpdatePopupOpen] = useState(false);
+    const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+    const [updatedPhotoTitle, setUpdatedPhotoTitle] = useState<string>("");
+    const [updatedPhotoUrl, setUpdatePhotoUrl] = useState<string>("");
+    const [updatedThumbnailUrl, setUpdateThumbnailUrl] = useState<string>("");
+
+    const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
+    const isFirstRender = useRef(true);
 
     const handleOpenCreatePopup = () => {
         setIsCreatePopupOpen(true);
     };
 
-    const handleCloseCreatePopup = () => {
-        setIsCreatePopupOpen(false);
+    const handleOpenUpdatePopup = (photo: Photo) => {
+        setIsUpdatePopupOpen(true);
+        setSelectedPhoto(photo);
+        // if(selectedPhoto){
+        //   setUpdatedPhotoTitle(selectedPhoto.title);
+        //   setUpdatePhotoUrl(selectedPhoto.url);
+        //   setUpdateThumbnailUrl(selectedPhoto.thumbnailUrl);
+        // }
+        console.log("Checkkkk",selectedPhoto)
     };
+
+    const handleClosePopup = () => {
+        setIsCreatePopupOpen(false);
+        setIsUpdatePopupOpen(false)
+    };
+
     useEffect(() => {
-        fetchPhotos();
-    }, [page, search]);
+        if (isFirstRender.current) {
+            isFirstRender.current = false
+            return;
+        }
+        fetchPhotos().then(() => console.log("fetchPhotos"))
+    }   , [page]);
+
+    useEffect(() => {
+        const filteredPhotos = photos
+            .filter((photo) =>
+                search === '' || photo.title.toLowerCase().includes(search.toLowerCase())
+
+            )
+        setFilteredData(filteredPhotos)
+        console.log("filteredPhotos", filteredData)
+    }, [photos, search]);
 
     const fetchPhotos = async () => {
         try {
+            console.log("~~~~~~~~!!!!!!call fetchPhotos page", page)
+
             const response = await axios.get(
                 `https://jsonplaceholder.typicode.com/photos?_page=${page}&_limit=10`
             );
+            console.log("fetchPhotos response", response.data)
+
             setPhotos((prevPhotos) => [...prevPhotos, ...response.data]);
+
         } catch (error) {
             console.error("Error fetching photos:", error);
         }
@@ -42,45 +88,38 @@ const PhotoList: React.FC = () => {
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
-        setPage(1); // Reset page when searching to start from the first page
     };
 
-
-    const filteredPhotos = photos
-        .filter((photo) =>
-            photo.title.toLowerCase().includes(search.toLowerCase())
-        )
-        .slice(0, page * 10);
-
     const handleCreate = async () => {
+        const newPhoto = {
+            albumId: 1,
+            title: newPhotoTitle,
+            url: newPhotoUrl,
+            thumbnailUrl: newThumbnailUrl,
+            id: filteredData.length + 5000,
+        };
         try {
-            // Make an API request to create a new photo
-            const response = await axios.post("https://jsonplaceholder.typicode.com/photos", {
-                title: newPhotoTitle,
-                // Include other properties as needed
-            });
-
-            // Fetch the entire list again after creating a new item
-            const updatedPhotos = await axios.get("https://jsonplaceholder.typicode.com/photos");
-            setPhotos(updatedPhotos.data);
-
-            setNewPhotoTitle(""); // Clear the input field after creating a new photo
-            handleCloseCreatePopup(); // Close the popup after creating a new photo
+            const response = await axios.post("https://jsonplaceholder.typicode.com/photos", newPhoto)
+            filteredData.unshift(response.data);
+            setPhotos(filteredData);
+            setFilteredData(filteredData);
+            setNewPhotoTitle("");
+            setNewPhotoUrl("");
+            setNewThumbnailUrl("");
+            handleClosePopup();
         } catch (error) {
             console.error("Error creating photo:", error);
         }
     };
-    const handleUpdate = (photo: Photo) => {
-        setSelectedPhoto(photo);
-        setUpdatedTitle(photo.title);
-    };
 
     const handleSaveUpdate = () => {
         const updatedPhotos = photos.map((photo) =>
-            photo.id === selectedPhoto?.id ? { ...photo, title: updatedTitle } : photo
+            photo.id === selectedPhoto?.id ? { ...photo, title: updatedPhotoTitle, url: updatedPhotoUrl, thumbnailUrl: updatedThumbnailUrl } : photo
         );
         setPhotos(updatedPhotos);
+        setFilteredData(updatedPhotos);
         setSelectedPhoto(null);
+        handleClosePopup();
     };
 
     const handleCancelUpdate = () => {
@@ -106,6 +145,7 @@ const PhotoList: React.FC = () => {
         setShowBackToTop(document.documentElement.scrollTop > 100);
 
         if (scrolledToBottom) {
+            console.log("scroll to bottom!", page)
             setPage((prevPage) => prevPage + 1);
         }
     };
@@ -121,54 +161,95 @@ const PhotoList: React.FC = () => {
         };
     }, []);
 
+    const highlightMatch = (text: string, search: string) => {
+        if (!search) return text;
+
+        const regex = new RegExp(`(${search})`, 'gi');
+        const parts = text.split(regex);
+
+        return parts.map((part, index) =>
+                regex.test(part) ? (
+                    <span key={index} className="bg-yellow-300">
+          {part}
+        </span>
+                ) : (
+                    part
+                )
+        );
+    };
+
     return (
         <div className="container mx-auto mt-8 px-8">
-            <div className="sticky top-0 bg-white z-10 space-y-3 p-2">
-                <p className="text-center text-xl"> Photo gallery </p>
-                <input
-                    type="text"
-                    placeholder="Search by title"
-                    value={search}
-                    onChange={handleSearch}
-                    className="p-2 w-full border border-gray-300 rounded"
-                />
-                <button onClick={handleOpenCreatePopup}>Create</button>
+            <p className="text-2xl font-bold text-[#95774F]"> Photo gallery </p>
+            <div className="sticky top-0 w-full bg-gradient-to-b from-white z-10 p-2">
+                <div className="flex">
+                    <input
+                        type="text"
+                        placeholder="Search by title"
+                        value={search}
+                        onChange={handleSearch}
+                        className="p-2 w-full border border-gray-300 rounded-md"
+                    />
+                    <button className="bg-[#F1E6DB] text-[#95774F] hover:bg-[#95774F] hover:text-white mx-2 py-2 px-4 rounded-md"
+                            onClick={handleOpenCreatePopup}>
+                        <p className="hidden md:flex">Create</p>
+                        <div className="md:hidden">
+                            <AddPhotoAlternateIcon/>
+                        </div>
+
+                    </button>
+                </div>
+
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-8">
-                {filteredPhotos.map((item) => (
+                {filteredData.map((item) => (
                     <div
                         key={item.id}
                         className="flex flex-col bg-white p-4 rounded-lg shadow-md transition duration-300 hover:shadow-lg justify-between"
 
                     >
-                        <img src={item.thumbnailUrl} alt={item.title} className="mb-2 rounded" />
-                        <p className="text-center text-gray-800">{item.title}</p>
+                        <img src={item.thumbnailUrl} alt={item.title} className="mb-2 rounded-md" />
+                        <p key={item.id} className="text-center text-gray-800">
+                            {highlightMatch(item.title, search)}
+                        </p>
+
                         <div className="flex justify-between items-end">
-                            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                    onClick={() => handleUpdate(item)}>Update</button>
-                            <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                                    onClick={() => handleDelete(item.id)}>Delete</button>
+                            <button className="bg-[#A0C7B5] hover:bg-[#6EB3B2] text-white py-2 px-4 rounded-md"
+                                    onClick={() => handleOpenUpdatePopup(item)}>
+
+                                <p className="hidden md:flex">Edit</p>
+                                <div className="md:hidden">
+                                    <EditIcon/>
+                                </div>
+                            </button>
+                            <button className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md"
+                                    onClick={() => handleDelete(item.id)}>
+                                <p className="hidden md:flex">Delete</p>
+                                <div className="md:hidden">
+                                    <DeleteIcon/>
+                                </div>
+                            </button>
 
                         </div>
 
                     </div>
                 ))}
-                {selectedPhoto && (
-                    <div>
-                        <input
-                            type="text"
-                            value={updatedTitle}
-                            onChange={(e) => setUpdatedTitle(e.target.value)}
-                        />
-                        <button onClick={handleSaveUpdate}>Save</button>
-                        <button onClick={handleCancelUpdate}>Cancel</button>
-                    </div>
-                )}
+                {/*{selectedPhoto && (*/}
+                {/*    <div className="flex">*/}
+                {/*        <input*/}
+                {/*            type="text"*/}
+                {/*            value={updatedPhotoTitle}*/}
+                {/*            onChange={(e) => setUpdatedPhotoTitle(e.target.value)}*/}
+                {/*        />*/}
+                {/*        <button onClick={handleSaveUpdate}>Save</button>*/}
+                {/*        <button onClick={handleCancelUpdate}>Cancel</button>*/}
+                {/*    </div>*/}
+                {/*)}*/}
             </div>
             {showBackToTop && (
                 <button
                     onClick={handleBackToTop}
-                    className="fixed bottom-8 right-8 bg-blue-500 text-white px-4 py-2 rounded-full"
+                    className="fixed bottom-8 right-8 bg-[#95774F] text-white py-2 px-2.5 rounded-full"
                 >
                     <ArrowUpwardIcon/>
                 </button>
@@ -176,16 +257,90 @@ const PhotoList: React.FC = () => {
 
             {isCreatePopupOpen && (
                 <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex justify-center items-center">
-                    <div className="bg-white p-8 rounded-md">
-                        <label htmlFor="newPhotoTitle">Title:</label>
-                        <input
-                            type="text"
-                            id="newPhotoTitle"
-                            value={newPhotoTitle}
-                            onChange={(e) => setNewPhotoTitle(e.target.value)}
-                        />
-                        <button onClick={handleCreate}>Create</button>
-                        <button onClick={handleCloseCreatePopup}>Cancel</button>
+                    <div className="bg-white p-8 rounded-md shadow-lg w-96">
+                        <div className="mb-4">
+                            <label htmlFor="newPhotoTitle" className="block text-sm font-medium text-gray-700">Title:</label>
+                            <input
+                                type="text"
+                                id="newPhotoTitle"
+                                value={newPhotoTitle}
+                                onChange={(e) => setNewPhotoTitle(e.target.value)}
+                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label htmlFor="newPhotoUrl" className="block text-sm font-medium text-gray-700">Photo URL:</label>
+                            <input
+                                type="text"
+                                id="newPhotoUrl"
+                                value={newPhotoUrl}
+                                onChange={(e) => setNewPhotoUrl(e.target.value)}
+                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label htmlFor="newThumbnailUrl" className="block text-sm font-medium text-gray-700">Thumbnail URL:</label>
+                            <input
+                                type="text"
+                                id="newThumbnailUrl"
+                                value={newThumbnailUrl}
+                                onChange={(e) => setNewThumbnailUrl(e.target.value)}
+                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+                        <div className="flex justify-end">
+                            <button onClick={handleCreate} className="mr-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:shadow-outline-green">
+                                Create
+                            </button>
+                            <button onClick={handleClosePopup} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:shadow-outline-gray">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isUpdatePopupOpen && (
+                <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex justify-center items-center">
+                    <div className="bg-white p-8 rounded-md shadow-lg w-96">
+                        <div className="mb-4">
+                            <label htmlFor="photoTitle" className="block text-sm font-medium text-gray-700">Title:</label>
+                            <input
+                                type="text"
+                                id="photoTitle"
+                                defaultValue={selectedPhoto?.title}
+                                onChange={(e) => setUpdatedPhotoTitle(e.target.value)}
+                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label htmlFor="photoUrl" className="block text-sm font-medium text-gray-700">Photo URL:</label>
+                            <input
+                                type="text"
+                                id="photoUrl"
+                                value={selectedPhoto?.url}
+                                onChange={(e) => setUpdatePhotoUrl(e.target.value)}
+                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label htmlFor="thumbnailUrl" className="block text-sm font-medium text-gray-700">Thumbnail URL:</label>
+                            <input
+                                type="text"
+                                id="thumbnailUrl"
+                                defaultValue={selectedPhoto?.thumbnailUrl}
+                                onChange={(e) => setUpdateThumbnailUrl(e.target.value)}
+                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                            />
+                        </div>
+                        <div className="flex justify-end">
+                            <button onClick={handleSaveUpdate} className="mr-2 px-4 py-2 bg-[#A0C7B5] hover:bg-[#6EB3B2] text-white rounded-md focus:outline-none focus:shadow-outline-blue">
+                                Save
+                            </button>
+                            <button onClick={handleClosePopup} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:shadow-outline-gray">
+                                Cancel
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
