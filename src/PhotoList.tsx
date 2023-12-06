@@ -25,7 +25,13 @@ const PhotoList: React.FC = () => {
 
     // update
     const [isUpdatePopupOpen, setIsUpdatePopupOpen] = useState(false);
-    const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+    const [selectedPhoto, setSelectedPhoto] = useState<Photo>({
+        albumId: 0,
+        id: 0,
+        title: "",
+        url: "",
+        thumbnailUrl: "",
+    });
     const [updatedPhotoTitle, setUpdatedPhotoTitle] = useState<string>("");
     const [updatedPhotoUrl, setUpdatePhotoUrl] = useState<string>("");
     const [updatedThumbnailUrl, setUpdateThumbnailUrl] = useState<string>("");
@@ -38,14 +44,9 @@ const PhotoList: React.FC = () => {
     };
 
     const handleOpenUpdatePopup = (photo: Photo) => {
+        console.log("handleOpenUpdatePopup", photo)
         setIsUpdatePopupOpen(true);
         setSelectedPhoto(photo);
-        // if(selectedPhoto){
-        //   setUpdatedPhotoTitle(selectedPhoto.title);
-        //   setUpdatePhotoUrl(selectedPhoto.url);
-        //   setUpdateThumbnailUrl(selectedPhoto.thumbnailUrl);
-        // }
-        console.log("Checkkkk",selectedPhoto)
     };
 
     const handleClosePopup = () => {
@@ -114,17 +115,30 @@ const PhotoList: React.FC = () => {
     };
 
     const handleSaveUpdate = () => {
+        console.log("selectedPhoto", selectedPhoto)
         const updatedPhotos = photos.map((photo) =>
-            photo.id === selectedPhoto?.id ? { ...photo, title: updatedPhotoTitle, url: updatedPhotoUrl, thumbnailUrl: updatedThumbnailUrl } : photo
+            photo.id === selectedPhoto.id ? selectedPhoto : photo
         );
         setPhotos(updatedPhotos);
         setFilteredData(updatedPhotos);
-        setSelectedPhoto(null);
+        setSelectedPhoto({
+            albumId: 0,
+            id: 0,
+            title: "",
+            url: "",
+            thumbnailUrl: "",
+        });
         handleClosePopup();
     };
 
     const handleCancelUpdate = () => {
-        setSelectedPhoto(null);
+        setSelectedPhoto({
+            albumId: 0,
+            id: 0,
+            title: "",
+            url: "",
+            thumbnailUrl: "",
+        });
     };
 
     const handleDelete = async (id:number) => {
@@ -309,8 +323,8 @@ const PhotoList: React.FC = () => {
                             <input
                                 type="text"
                                 id="photoTitle"
-                                defaultValue={selectedPhoto?.title}
-                                onChange={(e) => setUpdatedPhotoTitle(e.target.value)}
+                                defaultValue={selectedPhoto.title}
+                                onChange={(e) => setSelectedPhoto({ ...selectedPhoto, title: e.target.value })}
                                 className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
                             />
                         </div>
@@ -319,8 +333,8 @@ const PhotoList: React.FC = () => {
                             <input
                                 type="text"
                                 id="photoUrl"
-                                value={selectedPhoto?.url}
-                                onChange={(e) => setUpdatePhotoUrl(e.target.value)}
+                                value={selectedPhoto.url}
+                                onChange={(e) => setSelectedPhoto({ ...selectedPhoto, url: e.target.value })}
                                 className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
                             />
                         </div>
@@ -329,8 +343,8 @@ const PhotoList: React.FC = () => {
                             <input
                                 type="text"
                                 id="thumbnailUrl"
-                                defaultValue={selectedPhoto?.thumbnailUrl}
-                                onChange={(e) => setUpdateThumbnailUrl(e.target.value)}
+                                defaultValue={selectedPhoto.thumbnailUrl}
+                                onChange={(e) => setSelectedPhoto({ ...selectedPhoto, thumbnailUrl: e.target.value })}
                                 className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
                             />
                         </div>
