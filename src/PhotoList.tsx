@@ -13,6 +13,7 @@ interface Photo {
 }
 const PhotoList: React.FC = () => {
     const [photos, setPhotos] = useState<Photo[]>([]);
+    const [filteredData, setFilteredData] = useState<Photo[]>([]);
     const [search, setSearch] = useState<string>("");
     const [page, setPage] = useState<number>(1);
 
