@@ -36,7 +36,7 @@ const PhotoList: React.FC = () => {
     });
 
     const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
-    const isFirstRender = useRef(true);
+    const isLoading = useRef(false);
 
     const handleOpenCreatePopup = () => {
         setIsCreatePopupOpen(true);
@@ -55,11 +55,14 @@ const PhotoList: React.FC = () => {
     };
 
     useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false
-            return;
-        }
-        fetchPhotos().then(() => console.log("fetchPhotos"))
+        // if (isLoading.current) {
+        //     isLoading.current = false
+        //     return;
+        // }
+
+        fetchPhotos()
+            .then(() => {console.log("fetchPhotos", page);})
+            .catch((error) => console.error("Error fetching photos:", error));
     }   , [page]);
 
     useEffect(() => {
@@ -72,6 +75,11 @@ const PhotoList: React.FC = () => {
     }, [photos, search]);
 
     const fetchPhotos = async () => {
+        if(isLoading.current) {
+            return;
+        }
+
+        isLoading.current = true;
         try {
             console.log("~~~~~~~~!!!!!!call fetchPhotos page", page)
 
@@ -85,6 +93,8 @@ const PhotoList: React.FC = () => {
         } catch (error) {
             console.error("Error fetching photos:", error);
         }
+
+        isLoading.current = false;
     };
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,8 +107,8 @@ const PhotoList: React.FC = () => {
             title: newPhotoTitle,
             url: newPhotoUrl,
             thumbnailUrl: newThumbnailUrl,
-            id: new Date().getTime() + 5000,
         };
+        // console.log(newPhoto);
         if (!newPhotoTitle || !newPhotoUrl || !newThumbnailUrl) {
             window.alert("Please fill in all information!");
         } else {
@@ -111,6 +121,7 @@ const PhotoList: React.FC = () => {
                 setNewPhotoUrl("");
                 setNewThumbnailUrl("");
                 handleClosePopup();
+
             } catch (error) {
                 console.error("Error creating photo:", error);
             }
@@ -164,7 +175,7 @@ const PhotoList: React.FC = () => {
 
         setShowBackToTop(document.documentElement.scrollTop > 100);
 
-        if (scrolledToBottom) {
+        if (scrolledToBottom && !isLoading.current) {
             console.log("scroll to bottom!", page)
             setPage((prevPage) => prevPage + 1);
         }
