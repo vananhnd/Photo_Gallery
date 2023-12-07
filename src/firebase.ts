@@ -1,5 +1,3 @@
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 const firebaseConfig = {
@@ -12,7 +10,5 @@ const firebaseConfig = {
     measurementId: "G-GGTX4LPLZW"
 };
 firebase.initializeApp(firebaseConfig);
-// export const app = initializeApp(firebaseConfig);
-// export const analytics = getAnalytics(app);
 export const auth = firebase.auth();
 export const provider = new firebase.auth.GoogleAuthProvider();
