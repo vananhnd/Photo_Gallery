@@ -2,6 +2,8 @@ import React, {useState, useEffect, useRef} from "react";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
+import CheckIcon from '@mui/icons-material/Check';
 import EditIcon from '@mui/icons-material/Edit';
 import axios from "axios";
 interface Photo {
@@ -32,9 +34,6 @@ const PhotoList: React.FC = () => {
         url: "",
         thumbnailUrl: "",
     });
-    const [updatedPhotoTitle, setUpdatedPhotoTitle] = useState<string>("");
-    const [updatedPhotoUrl, setUpdatePhotoUrl] = useState<string>("");
-    const [updatedThumbnailUrl, setUpdateThumbnailUrl] = useState<string>("");
 
     const [showBackToTop, setShowBackToTop] = useState<boolean>(false);
     const isFirstRender = useRef(true);
@@ -51,6 +50,7 @@ const PhotoList: React.FC = () => {
 
     const handleClosePopup = () => {
         setIsCreatePopupOpen(false);
+        handleCancelUpdate();
         setIsUpdatePopupOpen(false)
     };
 
@@ -196,16 +196,16 @@ const PhotoList: React.FC = () => {
     return (
         <div className="container mx-auto mt-8 px-8">
             <p className="text-2xl font-bold text-[#95774F]"> Photo gallery </p>
-            <div className="sticky top-0 w-full bg-gradient-to-b from-white z-10 p-2">
+            <div className="z-10 sticky top-0 w-full bg-gradient-to-b from-white p-2 rounded-md">
                 <div className="flex">
                     <input
                         type="text"
                         placeholder="Search by title"
                         value={search}
                         onChange={handleSearch}
-                        className="p-2 w-full border border-gray-300 rounded-md"
+                        className="p-2 w-full border border-gray-300 rounded-md focus:border-[#95774F] focus:outline-none focus:ring-0"
                     />
-                    <button className="bg-[#F1E6DB] text-[#95774F] hover:bg-[#95774F] hover:text-white mx-2 py-2 px-4 rounded-md"
+                    <button className="bg-[#F1E6DB] text-[#95774F] hover:bg-[#95774F] hover:text-white mx-2 py-2 px-2.5 md:px-4 rounded-full md:rounded-md"
                             onClick={handleOpenCreatePopup}>
                         <p className="hidden md:flex">Create</p>
                         <div className="md:hidden">
@@ -229,7 +229,7 @@ const PhotoList: React.FC = () => {
                         </p>
 
                         <div className="flex justify-between items-end">
-                            <button className="bg-[#A0C7B5] hover:bg-[#6EB3B2] text-white py-2 px-4 rounded-md"
+                            <button className="bg-[#A0C7B5] hover:bg-[#6EB3B2] text-white py-2 px-2.5 md:px-4 rounded-full md:rounded-md"
                                     onClick={() => handleOpenUpdatePopup(item)}>
 
                                 <p className="hidden md:flex">Edit</p>
@@ -237,7 +237,7 @@ const PhotoList: React.FC = () => {
                                     <EditIcon/>
                                 </div>
                             </button>
-                            <button className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md"
+                            <button className="bg-red-500 hover:bg-red-600 text-white py-2 px-2.5 md:px-4 rounded-full md:rounded-md"
                                     onClick={() => handleDelete(item.id)}>
                                 <p className="hidden md:flex">Delete</p>
                                 <div className="md:hidden">
@@ -249,17 +249,6 @@ const PhotoList: React.FC = () => {
 
                     </div>
                 ))}
-                {/*{selectedPhoto && (*/}
-                {/*    <div className="flex">*/}
-                {/*        <input*/}
-                {/*            type="text"*/}
-                {/*            value={updatedPhotoTitle}*/}
-                {/*            onChange={(e) => setUpdatedPhotoTitle(e.target.value)}*/}
-                {/*        />*/}
-                {/*        <button onClick={handleSaveUpdate}>Save</button>*/}
-                {/*        <button onClick={handleCancelUpdate}>Cancel</button>*/}
-                {/*    </div>*/}
-                {/*)}*/}
             </div>
             {showBackToTop && (
                 <button
@@ -280,7 +269,7 @@ const PhotoList: React.FC = () => {
                                 id="newPhotoTitle"
                                 value={newPhotoTitle}
                                 onChange={(e) => setNewPhotoTitle(e.target.value)}
-                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-[#95774F]"
                             />
                         </div>
                         <div className="mb-4">
@@ -290,7 +279,7 @@ const PhotoList: React.FC = () => {
                                 id="newPhotoUrl"
                                 value={newPhotoUrl}
                                 onChange={(e) => setNewPhotoUrl(e.target.value)}
-                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-[#95774F]"
                             />
                         </div>
                         <div className="mb-4">
@@ -300,15 +289,22 @@ const PhotoList: React.FC = () => {
                                 id="newThumbnailUrl"
                                 value={newThumbnailUrl}
                                 onChange={(e) => setNewThumbnailUrl(e.target.value)}
-                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-[#95774F]"
                             />
                         </div>
-                        <div className="flex justify-end">
-                            <button onClick={handleCreate} className="mr-2 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:shadow-outline-green">
-                                Create
+                        <div className="flex justify-between">
+                            <button onClick={handleCreate} className="mr-2 px-2.5 md:px-4 py-2 bg-green-500 text-white rounded-full md:rounded-md hover:bg-green-600 focus:outline-none focus:shadow-outline-green">
+
+                                <p className="hidden md:flex">Create</p>
+                                <div className="md:hidden">
+                                    <CheckIcon/>
+                                </div>
                             </button>
-                            <button onClick={handleClosePopup} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:shadow-outline-gray">
-                                Cancel
+                            <button onClick={handleClosePopup} className="px-2.5 md:px-4 py-2 bg-red-500 text-white rounded-full md:rounded-md hover:bg-red-600 focus:outline-none focus:shadow-outline-gray">
+                                <p className="hidden md:flex">Cancel</p>
+                                <div className="md:hidden">
+                                    <CloseIcon/>
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -317,7 +313,7 @@ const PhotoList: React.FC = () => {
 
             {isUpdatePopupOpen && (
                 <div className="fixed top-0 left-0 w-full h-full bg-gray-800 bg-opacity-50 flex justify-center items-center">
-                    <div className="bg-white p-8 rounded-md shadow-lg w-96">
+                    <div className="bg-white p-8 rounded-md shadow-lg w-96 lg:w-1/3">
                         <div className="mb-4">
                             <label htmlFor="photoTitle" className="block text-sm font-medium text-gray-700">Title:</label>
                             <input
@@ -325,7 +321,7 @@ const PhotoList: React.FC = () => {
                                 id="photoTitle"
                                 defaultValue={selectedPhoto.title}
                                 onChange={(e) => setSelectedPhoto({ ...selectedPhoto, title: e.target.value })}
-                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-[#95774F]"
                             />
                         </div>
                         <div className="mb-4">
@@ -335,7 +331,7 @@ const PhotoList: React.FC = () => {
                                 id="photoUrl"
                                 value={selectedPhoto.url}
                                 onChange={(e) => setSelectedPhoto({ ...selectedPhoto, url: e.target.value })}
-                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-[#95774F]"
                             />
                         </div>
                         <div className="mb-4">
@@ -345,15 +341,21 @@ const PhotoList: React.FC = () => {
                                 id="thumbnailUrl"
                                 defaultValue={selectedPhoto.thumbnailUrl}
                                 onChange={(e) => setSelectedPhoto({ ...selectedPhoto, thumbnailUrl: e.target.value })}
-                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-blue-500"
+                                className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-[#95774F]"
                             />
                         </div>
-                        <div className="flex justify-end">
-                            <button onClick={handleSaveUpdate} className="mr-2 px-4 py-2 bg-[#A0C7B5] hover:bg-[#6EB3B2] text-white rounded-md focus:outline-none focus:shadow-outline-blue">
-                                Save
+                        <div className="flex justify-between">
+                            <button onClick={handleSaveUpdate} className="mr-2 px-2.5 md:px-4 py-2 bg-[#A0C7B5] hover:bg-[#6EB3B2] text-white rounded-full md:rounded-md focus:outline-none focus:shadow-outline-blue">
+                                <p className="hidden md:flex">Save</p>
+                                <div className="md:hidden">
+                                    <CheckIcon/>
+                                </div>
                             </button>
-                            <button onClick={handleClosePopup} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:shadow-outline-gray">
-                                Cancel
+                            <button onClick={handleClosePopup} className="px-2.5 md:px-4 py-2 bg-red-500 text-white rounded-full md:rounded-md hover:bg-red-600 focus:outline-none focus:shadow-outline-gray">
+                                <p className="hidden md:flex">Cancel</p>
+                                <div className="md:hidden">
+                                    <CloseIcon/>
+                                </div>
                             </button>
                         </div>
                     </div>
