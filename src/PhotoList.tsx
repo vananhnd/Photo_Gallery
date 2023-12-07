@@ -28,7 +28,7 @@ const PhotoList: React.FC = () => {
     // update
     const [isUpdatePopupOpen, setIsUpdatePopupOpen] = useState(false);
     const [selectedPhoto, setSelectedPhoto] = useState<Photo>({
-        albumId: 0,
+        albumId: 1,
         id: 0,
         title: "",
         url: "",
@@ -44,8 +44,8 @@ const PhotoList: React.FC = () => {
 
     const handleOpenUpdatePopup = (photo: Photo) => {
         console.log("handleOpenUpdatePopup", photo)
-        setIsUpdatePopupOpen(true);
         setSelectedPhoto(photo);
+        setIsUpdatePopupOpen(true);
     };
 
     const handleClosePopup = () => {
@@ -69,7 +69,6 @@ const PhotoList: React.FC = () => {
 
             )
         setFilteredData(filteredPhotos)
-        console.log("filteredPhotos", filteredData)
     }, [photos, search]);
 
     const fetchPhotos = async () => {
@@ -98,20 +97,26 @@ const PhotoList: React.FC = () => {
             title: newPhotoTitle,
             url: newPhotoUrl,
             thumbnailUrl: newThumbnailUrl,
-            id: filteredData.length + 5000,
+            id: new Date().getTime() + 5000,
         };
-        try {
-            const response = await axios.post("https://jsonplaceholder.typicode.com/photos", newPhoto)
-            filteredData.unshift(response.data);
-            setPhotos(filteredData);
-            setFilteredData(filteredData);
-            setNewPhotoTitle("");
-            setNewPhotoUrl("");
-            setNewThumbnailUrl("");
-            handleClosePopup();
-        } catch (error) {
-            console.error("Error creating photo:", error);
+        if (!newPhotoTitle || !newPhotoUrl || !newThumbnailUrl) {
+            window.alert("Please fill in all information!");
+        } else {
+            try {
+                const response = await axios.post("https://jsonplaceholder.typicode.com/photos", newPhoto)
+                filteredData.unshift(response.data);
+                setPhotos(filteredData);
+                setFilteredData(filteredData);
+                setNewPhotoTitle("");
+                setNewPhotoUrl("");
+                setNewThumbnailUrl("");
+                handleClosePopup();
+            } catch (error) {
+                console.error("Error creating photo:", error);
+            }
         }
+
+
     };
 
     const handleSaveUpdate = () => {
@@ -278,6 +283,7 @@ const PhotoList: React.FC = () => {
                                 type="text"
                                 id="newPhotoUrl"
                                 value={newPhotoUrl}
+                                required
                                 onChange={(e) => setNewPhotoUrl(e.target.value)}
                                 className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-[#95774F]"
                             />
@@ -288,6 +294,7 @@ const PhotoList: React.FC = () => {
                                 type="text"
                                 id="newThumbnailUrl"
                                 value={newThumbnailUrl}
+                                required
                                 onChange={(e) => setNewThumbnailUrl(e.target.value)}
                                 className="mt-1 p-2 w-full border rounded-md focus:outline-none focus:border-[#95774F]"
                             />
